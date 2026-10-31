@@ -5,7 +5,7 @@
 
 ## 在线访问
 
-GitHub Pages: <https://<用户名>.github.io/city-home-quiz/>
+GitHub Pages: <https://ymymaya.github.io/city-home-quiz/>
 
 ## 本地运行
 
