@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>测一测，你适合定居的城市</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1338'/%3E%3Ccircle cx='32' cy='30' r='17' fill='%23FFB627'/%3E%3Ccircle cx='32' cy='30' r='17' fill='none' stroke='%2314102A' stroke-width='4'/%3E%3Crect x='8' y='40' width='48' height='5' fill='%23FF4D6D'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+<style>
+/* ============ 设计 token ============ */
+:root{
+  --night:#0F1338;          /* 深夜靛 */
+  --night-deep:#080B24;
+  --paper:#FBF3E4;          /* 奶油纸 */
+  --paper-2:#FFF9EE;
+  --ink:#14102A;            /* 墨 */
+  --coral:#FF4D6D;          /* 落日珊瑚 */
+  --gold:#FFB627;           /* 夕阳金 */
+  --aqua:#2BD2C8;           /* 海湾青 */
+  --violet:#7B5CFF;         /* 电光紫 */
+  --ink-soft:#5A4E72;
+  --r-card:20px; --r-chip:7px; --r-btn:13px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--night)}
+body{
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--paper);line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+img,svg{display:block}
+
+/* ============ 背景：落日 + 网格 + 城市剪影 ============ */
+.sky{position:fixed;inset:0;overflow:hidden;z-index:0;background:
+  radial-gradient(120% 80% at 50% 8%, #1D2160 0%, #0F1338 46%, #080B24 100%);
+  transition:opacity .35s ease}
+.sky.dim{opacity:.3}
+.sun{position:absolute;left:50%;top:6%;transform:translateX(-50%);
+  width:min(78vw,430px);aspect-ratio:1/1;border-radius:50%;
+  background:linear-gradient(180deg,#FFE07A 0%,#FFB627 26%,#FF8A3D 52%,#FF4D6D 74%,#C43C8E 100%);
+  box-shadow:0 0 120px rgba(255,138,61,.36);
+  opacity:.92}
+.sun::after{content:"";position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(rgba(15,19,56,.85) 1px, transparent 1.6px);
+  background-size:7px 7px;
+  -webkit-mask-image:linear-gradient(160deg,#000 8%,transparent 62%);
+  mask-image:linear-gradient(160deg,#000 8%,transparent 62%)}
+.sky-halftone{position:absolute;inset:0;
+  background:radial-gradient(rgba(251,243,228,.16) 1px, transparent 1.4px);
+  background-size:9px 9px;
+  -webkit-mask-image:linear-gradient(180deg,transparent 40%,#000 100%);
+  mask-image:linear-gradient(180deg,transparent 40%,#000 100%);
+  opacity:.5}
+.grid-floor{position:absolute;left:-20%;right:-20%;bottom:0;height:34%;
+  background:
+    repeating-linear-gradient(90deg,rgba(43,210,200,.22) 0 1px,transparent 1px 30px),
+    repeating-linear-gradient(0deg,rgba(43,210,200,.22) 0 1px,transparent 1px 22px);
+  transform:perspective(230px) rotateX(64deg);transform-origin:bottom;
+  opacity:.55}
+.skyline{position:absolute;left:0;right:0;bottom:0;width:100%;height:26vh;min-height:150px}
+
+/* ============ 布局 ============ */
+.app{position:relative;z-index:1;max-width:520px;margin:0 auto;
+  padding:26px 20px 46px;min-height:100vh;display:flex;flex-direction:column}
+.view{display:none}
+.view.on{display:block;animation:pop .32s ease-out both}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.view.on{animation:none}*{transition:none!important}}
+
+/* 通用贴纸 */
+.sticker{background:var(--paper);color:var(--ink);border:2px solid var(--ink);
+  border-radius:var(--r-chip);box-shadow:4px 4px 0 var(--ink);display:inline-block}
+
+/* ============ 落地页 ============ */
+.land-top{display:flex;align-items:center;gap:10px;margin-bottom:26px;flex-wrap:wrap}
+.tag-chip{background:var(--aqua);color:var(--ink);border:2px solid var(--ink);
+  border-radius:var(--r-chip);box-shadow:3px 3px 0 var(--ink);
+  font-size:12.5px;font-weight:700;padding:5px 10px;transform:rotate(-2.5deg)}
+.tag-chip.b{background:var(--gold);transform:rotate(2deg)}
+.title-wrap{position:relative;margin-bottom:14px}
+h1{font-weight:900;font-size:clamp(34px,10.2vw,50px);line-height:1.14;
+  letter-spacing:-.5px;color:var(--paper);
+  -webkit-text-stroke:2px var(--ink);
+  text-shadow:5px 6px 0 var(--coral);}
+h1 .em{display:inline-block;background:linear-gradient(180deg,#FFD86B,#FFB627);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:2px var(--ink);text-shadow:none}
+.sub{font-size:15.5px;font-weight:500;color:rgba(251,243,228,.84);
+  letter-spacing:.02em;margin:18px 0 30px;max-width:20em}
+
+/* 4 个卖点贴纸 */
+.pts{display:grid;grid-template-columns:1fr 1fr;gap:12px 12px;margin:0 0 34px}
+.pt{background:var(--paper-2);color:var(--ink);border:2px solid var(--ink);
+  border-radius:var(--r-card);padding:13px 13px 12px;box-shadow:4px 4px 0 var(--ink)}
+.pt:nth-child(1){transform:rotate(-1.6deg)}
+.pt:nth-child(2){transform:rotate(1.4deg)}
+.pt:nth-child(3){transform:rotate(1.2deg)}
+.pt:nth-child(4){transform:rotate(-1.3deg)}
+.pt .k{font-weight:900;font-size:16px;letter-spacing:.02em;line-height:1.3}
+.pt .bar{height:2px;background:var(--ink);opacity:.16;margin:9px 0 8px}
+.pt .d{font-size:13px;color:var(--ink-soft);line-height:1.5}
+.pt:nth-child(odd) .k{color:#C8203F}
+.pt:nth-child(even) .k{color:#2A1E5C}
+
+/* 主按钮 */
+.cta{width:100%;border:3px solid var(--ink);border-radius:var(--r-btn);
+  background:var(--coral);color:var(--paper);font-family:inherit;
+  font-weight:900;font-size:21px;letter-spacing:.06em;
+  padding:16px 18px;cursor:pointer;box-shadow:6px 6px 0 var(--ink);
+  transition:transform .12s,box-shadow .12s;position:relative}
+.cta:active{transform:translate(4px,4px);box-shadow:2px 2px 0 var(--ink)}
+.cta:focus-visible{outline:3px solid var(--aqua);outline-offset:4px}
+.fine{font-size:12px;color:rgba(251,243,228,.6);text-align:center;margin-top:18px;line-height:1.7}
+
+/* 落地页角标贴纸 */
+.note{position:absolute;right:2px;top:-26px;background:var(--paper);color:var(--ink);
+  border:2px solid var(--ink);border-radius:6px;padding:6px 9px;font-size:11.5px;
+  font-weight:700;transform:rotate(6deg);box-shadow:3px 3px 0 var(--ink)}
+@media(max-width:360px){.note{display:none}}
+
+/* ============ 答题页 ============ */
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.back{background:none;border:2px solid rgba(251,243,228,.42);color:var(--paper);
+  border-radius:var(--r-chip);font-family:inherit;font-size:13px;font-weight:700;
+  padding:7px 12px;cursor:pointer;min-height:36px}
+.back:disabled{opacity:.3;cursor:default}
+.counter{font-weight:900;font-size:14px;letter-spacing:.04em;color:rgba(251,243,228,.9)}
+.counter b{color:var(--gold);font-size:19px}
+.track{height:7px;background:rgba(251,243,228,.16);border-radius:99px;overflow:hidden;margin-bottom:26px}
+.track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--coral));
+  border-radius:99px;transition:width .3s ease}
+.qcard{background:var(--paper-2);color:var(--ink);border:2px solid var(--ink);
+  border-radius:var(--r-card);box-shadow:6px 6px 0 var(--ink);
+  padding:22px 20px 24px;margin-bottom:20px}
+.qno{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--coral);margin-bottom:10px}
+.qtext{font-size:19.5px;font-weight:700;line-height:1.62;letter-spacing:.01em}
+.opts{display:flex;flex-direction:column;gap:11px}
+.opt{display:flex;align-items:flex-start;gap:12px;text-align:left;width:100%;
+  background:var(--paper);color:var(--ink);border:2px solid var(--ink);
+  border-radius:var(--r-btn);padding:14px 15px;font-family:inherit;
+  font-size:15px;font-weight:500;line-height:1.55;cursor:pointer;
+  box-shadow:3px 3px 0 rgba(20,16,42,.55);
+  transition:transform .1s,box-shadow .1s,background .1s}
+.opt .ltr{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:var(--ink);
+  color:var(--paper);font-size:13px;font-weight:900;display:flex;align-items:center;
+  justify-content:center;margin-top:1px}
+.opt:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(20,16,42,.55)}
+.opt.sel{background:var(--gold);box-shadow:3px 3px 0 var(--coral)}
+.opt.sel .ltr{background:var(--coral)}
+.opt:focus-visible{outline:3px solid var(--aqua);outline-offset:3px}
+.qhint{font-size:12px;color:rgba(251,243,228,.55);text-align:center;margin-top:16px}
+
+/* ============ 结果页 ============ */
+.res-poster{background:var(--paper);color:var(--ink);border:2px solid var(--ink);
+  border-radius:var(--r-card);box-shadow:7px 7px 0 var(--coral);
+  padding:24px 20px 22px;position:relative;overflow:hidden;margin-bottom:20px}
+.res-poster::after{content:"";position:absolute;right:-44px;top:-44px;width:120px;height:120px;
+  border-radius:50%;background:radial-gradient(circle at 50% 50%,var(--gold),var(--coral) 70%);
+  opacity:.88}
+.res-poster.plain::after{display:none}
+.res-poster .rlab{font-size:12px;font-weight:700;letter-spacing:.14em;color:#C8203F;position:relative}
+.cityname{font-weight:900;font-size:clamp(46px,13.5vw,62px);line-height:1.06;
+  letter-spacing:-1px;margin:6px 0 4px;position:relative;
+  -webkit-text-stroke:2px var(--ink);
+  text-shadow:4px 4px 0 var(--aqua)}
+.ctitle{display:inline-block;background:var(--violet);color:var(--paper);
+  border:2px solid var(--ink);border-radius:var(--r-chip);
+  font-size:13.5px;font-weight:700;padding:5px 11px;transform:rotate(-1.5deg);
+  box-shadow:3px 3px 0 var(--ink);margin:8px 0 16px}
+.match{display:flex;align-items:baseline;gap:3px;border-top:2px dashed rgba(20,16,42,.2);
+  padding-top:14px;margin-top:4px}
+.match .n{font-weight:900;font-size:38px;line-height:1;letter-spacing:-1px}
+.match .pct{font-weight:900;font-size:18px}
+.match .t{margin-left:auto;font-size:12px;color:var(--ink-soft);text-align:right;line-height:1.4}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 2px}
+.chip{background:transparent;border:1.5px solid rgba(20,16,42,.34);color:var(--ink-soft);
+  border-radius:999px;font-size:12px;padding:4px 10px;font-weight:500}
+.sec-t{font-size:12px;font-weight:900;letter-spacing:.12em;color:#C8203F;margin:0 0 10px}
+.reasons{display:flex;flex-direction:column;gap:11px;margin-bottom:6px}
+.reason{display:flex;gap:10px;font-size:14.5px;line-height:1.6;color:#241E3C}
+.reason .dot{flex:0 0 auto;width:8px;height:8px;background:var(--coral);margin-top:9px}
+.egg{background:var(--night);color:var(--paper);border-radius:14px;
+  border:2px solid var(--ink);padding:14px 15px;margin:18px 0 4px;position:relative;
+  box-shadow:4px 4px 0 rgba(123,92,255,.9)}
+.egg .lab{font-size:11.5px;font-weight:700;letter-spacing:.12em;color:var(--aqua);margin-bottom:5px}
+.egg p{font-size:14px;line-height:1.65;color:rgba(251,243,228,.94)}
+.quote{border-left:5px solid var(--gold);padding:2px 0 2px 13px;margin:20px 0 4px}
+.quote p{font-size:19px;font-weight:900;line-height:1.5;letter-spacing:.01em}
+.alt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:18px;
+  border-top:2px dashed rgba(20,16,42,.2);padding-top:14px;font-size:13px;color:var(--ink-soft)}
+.alt b{color:var(--ink);font-weight:700}
+.share{margin-top:22px}
+.share .row{display:flex;gap:10px}
+.btn2{flex:1;border:2px solid var(--ink);border-radius:var(--r-btn);font-family:inherit;
+  font-weight:700;font-size:14.5px;padding:13px 10px;cursor:pointer;min-height:48px;
+  transition:transform .1s,box-shadow .1s}
+.btn2.a{background:var(--gold);color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.btn2.b{background:transparent;color:var(--paper);border-color:rgba(251,243,228,.5);box-shadow:none}
+.btn2:active{transform:translate(2px,2px)}
+.btn2.a:active{box-shadow:1px 1px 0 var(--ink)}
+.btn2:focus-visible{outline:3px solid var(--aqua);outline-offset:3px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);
+  background:var(--paper);color:var(--ink);border:2px solid var(--ink);
+  border-radius:10px;padding:10px 16px;font-size:13.5px;font-weight:700;
+  box-shadow:4px 4px 0 var(--ink);opacity:0;pointer-events:none;
+  transition:opacity .22s,transform .22s;z-index:9;max-width:84vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ============ 手机端适配 ============ */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{overscroll-behavior-y:contain;-webkit-tap-highlight-color:transparent;
+  min-height:100vh;min-height:100dvh}
+.app{min-height:100vh;min-height:100dvh;padding-bottom:calc(46px + env(safe-area-inset-bottom))}
+.toast{bottom:calc(34px + env(safe-area-inset-bottom))}
+.match{flex-wrap:wrap;row-gap:6px}
+.match .t{margin-left:auto}
+@media (max-width:360px){
+  .app{padding-left:16px;padding-right:16px}
+  .opt{font-size:14.5px}
+  .qtext{font-size:18px}
+}
+
+/* ============ 保存到手机 ============ */
+.btn-save{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  background:var(--coral);color:var(--paper);border:2px solid var(--ink);
+  border-radius:var(--r-btn);font-family:inherit;font-weight:900;font-size:17px;
+  letter-spacing:.04em;padding:15px 12px;min-height:54px;cursor:pointer;
+  box-shadow:5px 5px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+.btn-save:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.btn-save:focus-visible{outline:3px solid var(--aqua);outline-offset:3px}
+.btn-save svg{width:19px;height:19px;flex:0 0 auto}
+.share-tip{font-size:11.5px;line-height:1.6;color:rgba(251,243,228,.55);text-align:center;margin:10px 0 14px}
+
+/* ============ 结果卡弹层 ============ */
+#modal{position:fixed;inset:0;z-index:30;display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom));
+  background:rgba(6,9,28,.96);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#modal.on{display:flex}
+.mbox{background:var(--paper);border:2px solid var(--ink);border-radius:16px;padding:7px;
+  box-shadow:6px 6px 0 var(--coral);width:100%;max-width:360px}
+#shot{display:block;width:100%;max-height:66vh;object-fit:contain;background:#0F1338;border-radius:9px}
+.mtip{color:rgba(251,243,228,.84);font-size:13px;text-align:center;line-height:1.6;max-width:360px}
+.mrow{display:flex;gap:10px;width:100%;max-width:360px}
+</style>
+</head>
+<body>
+
+<div class="sky" aria-hidden="true">
+  <div class="sun"></div>
+  <div class="grid-floor"></div>
+  <div class="sky-halftone"></div>
+  <svg class="skyline" viewBox="0 0 390 150" preserveAspectRatio="none" aria-hidden="true">
+    <g fill="#171340">
+      <rect x="0" y="86" width="26" height="64"/>
+      <rect x="28" y="104" width="18" height="46"/>
+      <rect x="48" y="70" width="30" height="80"/>
+      <rect x="80" y="92" width="22" height="58"/>
+      <rect x="104" y="112" width="26" height="38"/>
+      <rect x="152" y="64" width="16" height="86"/>
+      <path d="M132 150 L132 96 Q166 84 200 96 L200 150 Z"/>
+      <rect x="204" y="104" width="24" height="46"/>
+      <rect x="230" y="78" width="16" height="72"/>
+      <rect x="248" y="98" width="28" height="52"/>
+      <rect x="278" y="66" width="20" height="84"/>
+      <rect x="300" y="110" width="26" height="40"/>
+      <rect x="328" y="88" width="22" height="62"/>
+      <rect x="352" y="112" width="38" height="38"/>
+    </g>
+    <g fill="#FFB627" opacity=".9">
+      <rect x="6" y="94" width="3" height="5"/><rect x="16" y="94" width="3" height="5"/>
+      <rect x="6" y="110" width="3" height="5"/><rect x="16" y="110" width="3" height="5"/>
+      <rect x="32" y="112" width="3" height="5"/><rect x="39" y="124" width="3" height="5"/>
+      <rect x="54" y="78" width="3" height="5"/><rect x="64" y="78" width="3" height="5"/>
+      <rect x="54" y="94" width="3" height="5"/><rect x="64" y="110" width="3" height="5"/>
+      <rect x="86" y="100" width="3" height="5"/><rect x="93" y="114" width="3" height="5"/>
+      <rect x="112" y="120" width="3" height="5"/><rect x="120" y="132" width="3" height="5"/>
+      <rect x="156" y="72" width="3" height="5"/><rect x="156" y="88" width="3" height="5"/>
+      <rect x="210" y="112" width="3" height="5"/><rect x="218" y="126" width="3" height="5"/>
+      <rect x="234" y="86" width="3" height="5"/><rect x="234" y="102" width="3" height="5"/>
+      <rect x="282" y="74" width="3" height="5"/><rect x="290" y="90" width="3" height="5"/>
+      <rect x="306" y="118" width="3" height="5"/><rect x="316" y="132" width="3" height="5"/>
+      <rect x="334" y="96" width="3" height="5"/><rect x="342" y="112" width="3" height="5"/>
+      <rect x="360" y="122" width="3" height="5"/><rect x="372" y="134" width="3" height="5"/>
+    </g>
+    <g fill="#2BD2C8" opacity=".75">
+      <rect x="11" y="122" width="3" height="5"/><rect x="59" y="110" width="3" height="5"/>
+      <rect x="141" y="112" width="3" height="5"/><rect x="186" y="106" width="3" height="5"/>
+      <rect x="252" y="108" width="3" height="5"/><rect x="286" y="104" width="3" height="5"/>
+      <rect x="338" y="126" width="3" height="5"/><rect x="366" y="130" width="3" height="5"/>
+    </g>
+    <g fill="none" stroke="#171340" stroke-width="5" stroke-linecap="round">
+      <path d="M52 150 C54 122 48 104 56 84"/>
+      <path d="M56 84 C40 74 24 76 12 86"/>
+      <path d="M56 84 C42 92 30 100 22 110"/>
+      <path d="M56 84 C62 68 74 60 88 58"/>
+      <path d="M56 84 C72 82 84 88 92 98"/>
+      <path d="M56 84 C50 66 54 54 62 46"/>
+      <path d="M340 150 C336 124 342 108 334 90"/>
+      <path d="M334 90 C318 80 304 82 292 92"/>
+      <path d="M334 90 C320 98 310 106 302 116"/>
+      <path d="M334 90 C340 72 352 64 366 62"/>
+      <path d="M334 90 C350 90 360 96 368 106"/>
+    </g>
+  </svg>
+</div>
+
+<div class="app">
+
+  <!-- ===== 视图：落地页 ===== -->
+  <section class="view on" id="v-land">
+    <div class="land-top">
+      <span class="tag-chip">20 座城市</span>
+      <span class="tag-chip b">32 道脑洞题</span>
+      <span class="tag-chip" style="background:var(--violet);color:var(--paper);transform:rotate(1.5deg)">约 2 分钟</span>
+    </div>
+
+    <div class="title-wrap">
+      <span class="note">测完记得截图</span>
+      <h1>测一测，<br>你适合定居的<span class="em">城市</span></h1>
+    </div>
+    <p class="sub">凭你的脑洞偏好，匹配和你同频的城市</p>
+
+    <div class="pts">
+      <div class="pt"><div class="k">生活节奏</div><div class="bar"></div><div class="d">快慢随你心意</div></div>
+      <div class="pt"><div class="k">吃喝口味</div><div class="bar"></div><div class="d">适配你的味蕾</div></div>
+      <div class="pt"><div class="k">日常状态</div><div class="bar"></div><div class="d">匹配你的精神状态</div></div>
+      <div class="pt"><div class="k">城市气质</div><div class="bar"></div><div class="d">找到你的本命城市</div></div>
+    </div>
+
+    <button class="cta" id="go">点击测试→</button>
+    <p class="fine">趣味测试仅供娱乐，找到你的本命城市</p>
+  </section>
+
+  <!-- ===== 视图：答题页 ===== -->
+  <section class="view" id="v-quiz">
+    <div class="qhead">
+      <button class="back" id="back">‹ 上一题</button>
+      <div class="counter"><b id="cur">01</b> / 32</div>
+    </div>
+    <div class="track"><i id="bar"></i></div>
+    <div class="qcard">
+      <div class="qno" id="qno">第 1 题</div>
+      <p class="qtext" id="qtext"></p>
+    </div>
+    <div class="opts" id="opts"></div>
+    <p class="qhint">选一个最像你的就行，不用纠结</p>
+  </section>
+
+  <!-- ===== 视图：结果页 ===== -->
+  <section class="view" id="v-res">
+    <div class="res-poster">
+      <div class="rlab">你的本命城市是</div>
+      <h2 class="cityname" id="r-city">—</h2>
+      <div class="ctitle" id="r-title">—</div>
+      <div class="chips" id="r-chips"></div>
+      <div class="match">
+        <span class="n" id="r-num">--</span><span class="pct">%</span>
+        <span class="t">同频度<br>（按你的 32 次选择算出）</span>
+      </div>
+    </div>
+
+    <div class="res-poster plain">
+      <p class="sec-t">你们合拍的三件事</p>
+      <div class="reasons" id="r-reasons"></div>
+      <div class="egg">
+        <div class="lab">城市彩蛋</div>
+        <p id="r-egg"></p>
+      </div>
+      <div class="quote"><p id="r-quote"></p></div>
+      <div class="alt">第二顺位：<b id="r-alt">—</b></div>
+    </div>
+
+    <div class="share">
+      <button class="btn-save" id="save">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/>
+        </svg>
+        保存到手机
+      </button>
+      <p class="share-tip">生成一张竖版结果卡，可直接存图发笔记</p>
+      <div class="row">
+        <button class="btn2 a" id="copy">复制分享文案</button>
+        <button class="btn2 b" id="again">再测一次</button>
+      </div>
+    </div>
+    <p class="fine">趣味测试仅供娱乐，找到你的本命城市</p>
+  </section>
+
+</div>
+
+<div id="modal" role="dialog" aria-modal="true" aria-label="结果卡">
+  <div class="mbox"><img id="shot" alt="你的本命城市结果卡"></div>
+  <p class="mtip">长按图片可存入相册；保存的是 1080px 宽高清原图</p>
+  <div class="mrow">
+    <button class="btn2 a" id="dl">下载图片</button>
+    <button class="btn2 b" id="mclose">收起</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">已复制，去发个小红书吧</div>
+
+<script>
+/* ===== 城市池数据（20 城） ===== */
+const CITIES = [
+  {id:"BJ",name:"北京",title:"格局型选手",chips:["宏大叙事","老城与新楼","一开口就是趋势"],
+   reasons:["「先看一眼今天有什么大事」这类选项，你几乎不用犹豫——你调节情绪的方式是聊大问题，而不是刷短视频。",
+            "群里聊到新闻，你习惯从趋势讲到格局，三百字还不够用。",
+            "你需要一座能把日常琐碎稀释掉的城市，让自己随时接入更大的话题。"],
+   egg:"早高峰的地铁车厢里，随时能听见两句话拐进国际形势。",
+   quote:"你可以先聊理想，再聊房租。"},
+
+  {id:"SH",name:"上海",title:"仪式感执行官",chips:["配色不能乱","细节是正事","氛围感"],
+   reasons:["你的答案里反复出现「先配色、先摆盘」——你对凑合零容忍。",
+            "情绪上头时，你的第一反应是把今天过细致，连低落都要有形式感。",
+            "你需要一座把讲究当常规的城市，而不是把讲究当矫情。"],
+   egg:"一条街上能同时卖手冲咖啡和葱油饼，两者都不掉价。",
+   quote:"生活可以小，但不能糙。"},
+
+  {id:"TJ",name:"天津",title:"天生段子手",chips:["三句话一个包袱","唠嗑体质","自带相声伴奏"],
+   reasons:["遇到陌生人，你的第一反应是抛个包袱——社交对你不是任务，是节目。",
+            "深夜睡不着，你会给朋友发个段子，而不是发三百字长文。",
+            "你住的楼下最好有人聊天，热闹比装修重要。"],
+   egg:"打个车，司机能给你现场说一段单口。",
+   quote:"你一开口，日子就有了配乐。"},
+
+  {id:"CQ",name:"重庆",title:"8D 探险家",chips:["爬坡不喊累","重口爱好者","立体地图"],
+   reasons:["导航说「需要爬坡」，你反而更有劲——你选城市的第一标准是好玩，不是平坦。",
+            "你吃饭要最高档辣度，清淡那一档在你看来等于没吃。",
+            "情绪上头你会去出出汗，身体的解法比道理管用。"],
+   egg:"一栋楼有三个入口，分别落在三条不同的路上。",
+   quote:"坡越陡，你越有劲。"},
+
+  {id:"GZ",name:"广州",title:"务实生活家",chips:["得闲饮茶","一盅两件","低调靠谱"],
+   reasons:["你的判断标准很稳：能不能好好吃饭、事儿能不能办成，其余都是附加项。",
+            "朋友约你，一句「喝杯茶」比任何计划都有效。",
+            "你挑住处先看楼下有没有菜市场，生活半径短比景观重要。"],
+   egg:"早茶店里谈成的事，往往比会议室里多。",
+   quote:"先把茶斟上，事儿就好办。"},
+
+  {id:"CD",name:"成都",title:"松弛感主理人",chips:["晒太阳能晒成滩","慢节奏","情绪稳定"],
+   reasons:["闹钟响到第七遍，你的答案是「之后的交给之后的那个我」——你和时间的关系很松。",
+            "群里有争议，你一句「都可以，你们定」就退出战场。",
+            "你需要一座允许你不高效的城市，太阳一出来就该出门坐着。"],
+   egg:"太阳一出来，全城的椅子都搬到户外。",
+   quote:"你今天可以不高效，也没人催你。"},
+
+  {id:"CS",name:"长沙",title:"夜宵战神",chips:["夜宵体质","快乐浓度高","白天低调晚上开麦"],
+   reasons:["你的作息有自己的算法：白天低调，凌晨两点最清醒。",
+            "周末的两种活法，你毫不犹豫选「白天躺平，晚上夜宵见」。",
+            "你的社交方式是直接约饭，情绪在热气里解决。"],
+   egg:"凌晨两点的街上，比白天还热闹。",
+   quote:"你的快乐，按小时计费也不贵。"},
+
+  {id:"SZ",name:"深圳",title:"效率型新人类",chips:["把周末当项目","通勤最短","明天就干"],
+   reasons:["你的周末不叫周末，叫「进度窗口」——休息也要有产出。",
+            "挑房子你只认一条：通勤时间必须最短。",
+            "有了脑洞，你第一反应是「这能不能做成个东西」。"],
+   egg:"这里的人习惯把「改天」直接改成「明天」。",
+   quote:"你的野心，在这儿有地方放。"},
+
+  {id:"HZ",name:"杭州",title:"互联网文艺体",chips:["湖边想方案","一边看景一边开会","灵感随时记"],
+   reasons:["你能在散步时把下周方案想完，休息和工作在你身上不冲突。",
+            "深夜饿了你会点杯咖啡，顺手把灵感记下来。",
+            "群里的消息你习惯整理成文档再发，信息要排好。"],
+   egg:"湖边散步的人，手机里都开着两个窗口。",
+   quote:"你可以一边看风景，一边把事做成。"},
+
+  {id:"DL",name:"大理",title:"云朵观测员",chips:["按云速生活","不赶路","关灯听风"],
+   reasons:["闹钟对你无效，你的作息由天气决定。",
+            "周末你选「原地看云，云动了我就动」——你是真的能待住。",
+            "睡前你会关灯听风，不刷手机也没关系。"],
+   egg:"这里的时间，是按云飘过去的速度算的。",
+   quote:"你不赶路，路也不赶你。"},
+
+  {id:"XA",name:"西安",title:"碳水历史学家",chips:["碳水优先","城墙下遛弯","能聊一晚上"],
+   reasons:["吃什么你都要先想碳水，一碗面能顶一天。",
+            "你刷手机爱看纪录片和历史冷知识，聊天自带三千年背景。",
+            "周末的理想状态是城墙根下遛弯，顺手吃碗面。"],
+   egg:"城墙根下随便一挖，都是别人课本上的内容。",
+   quote:"一碗面，够你聊一晚上。"},
+
+  {id:"XM",name:"厦门",title:"海风生活家",chips:["骑车环岛","海风当 BGM","只卖几样的小店"],
+   reasons:["你的理想周末是骑车环岛，让风来当背景音乐。",
+            "朋友叫你出门，一句「去海边待着什么都不干」就够了。",
+            "你梦想的店不用大，只卖几样也行。"],
+   egg:"骑车十分钟，海就在左手边。",
+   quote:"你有事没事，都可以去海边待着。"},
+
+  {id:"QD",name:"青岛",title:"啤酒自由派",chips:["塑料袋装啤酒","海货配一切","说话直接"],
+   reasons:["你判断一顿饭的标准是够不够爽利，仪式不仪式的无所谓。",
+            "睡前你会开一瓶，配点海货，一天就算收工。",
+            "群里约人你从不绕弯子：「喝一杯，就这么定」。"],
+   egg:"啤酒装塑料袋里，回家路上还冒着凉气。",
+   quote:"你的快乐不用包装，够新鲜就行。"},
+
+  {id:"WH",name:"武汉",title:"江湖气过早党",chips:["过早仪式","过江坐轮渡","嗓门大心热"],
+   reasons:["你的早饭必须站着快速解决，那是一天的开工仪式。",
+            "通勤你选轮渡，看水比看车舒服。",
+            "遇到人你直接开聊，嗓门和热情一起上，从不冷场。"],
+   egg:"早餐能在路上吃完，还越吃越有精神。",
+   quote:"你嗓门大，是因为心是热的。"},
+
+  {id:"SUZ",name:"苏州",title:"慢精致派",chips:["白墙小院","听一段曲","轻声慢语"],
+   reasons:["你希望窗外是安静的白墙小院，热闹留给别人。",
+            "情绪不好时你找个小园子坐坐，听点慢的。",
+            "你说话轻声慢语，先把气氛摆舒服再谈事。"],
+   egg:"一条小巷里，评弹和炒菜声能混在一起。",
+   quote:"你慢，但你没有一步是白走的。"},
+
+  {id:"HRB",name:"哈尔滨",title:"冰雪浪漫派",chips:["外冷内热","份量实在","一顿大的治一半"],
+   reasons:["你点菜只要份量实在，花活少来。",
+            "情绪不好时你的解法是吃顿大的，热量能治一半。",
+            "群里你直接一句大实话，被人说耿直也不改。"],
+   egg:"冬天呼出的气，都能当特效。",
+   quote:"你外冷内热，这座城市也是。"},
+
+  {id:"FZ",name:"福州",title:"有福之州 · 温泉慢活家",chips:["温泉自由","一碗鱼丸汤","家族群最热闹"],
+   reasons:["你的周末理想是泡温泉，泡到手指发皱才起身。",
+            "深夜想吃东西，你会想一碗热汤，而不是一串烧烤。",
+            "你的家族群永远热闹，谁家煮了什么都发一张。"],
+   egg:"城里就有温泉，泡完还能吃碗鱼丸。",
+   quote:"你有福气，不急着证明。"},
+
+  {id:"NJ",name:"南京",title:"梧桐文艺派",chips:["梧桐色调","六朝底子","旧事与前行"],
+   reasons:["你挑房间会想到木质家具和梧桐色调，审美偏暖不偏亮。",
+            "走路你不在乎远近，只在乎两边有没有梧桐。",
+            "深夜你会拍张梧桐夜灯，发给懂的人。"],
+   egg:"梧桐一落叶，整条街自动打上柔光。",
+   quote:"你心里有旧事，也还能往前走。"},
+
+  {id:"KM",name:"昆明",title:"四季恒温党",chips:["四季有花","花市常客","心情不换季"],
+   reasons:["你对住处的硬要求很朴素：一年四季有花就行。",
+            "周末你会去花市转一圈，抱一束回来。",
+            "深夜你拍一张花发出去，什么都不说。"],
+   egg:"一年四季，路边都有花在开。",
+   quote:"你的心情，不需要换季。"},
+
+  {id:"LZ",name:"兰州",title:"牛肉面哲学家",chips:["一清二白","河边散步","话不多"],
+   reasons:["你的执念是一碗好面：汤要清、辣子要红，细节不能糊。",
+            "通勤你愿意沿河走一段，风一吹就清醒。",
+            "你话不多，但一开口就把事说清。"],
+   egg:"一碗面讲究「一清二白三红四绿五黄」。",
+   quote:"你话不多，但汤清得见底。"}
+];
+
+/* ===== 32 道题（每题 4 选项，选项绑定城市计分） ===== */
+const QUESTIONS = [
+  {q:"早上闹钟响到第七遍，你的第一反应是——",o:[
+    {t:"先刷一眼今天有什么大事，格局不能睡过去",c:"BJ"},
+    {t:"起床第一件事：今天穿什么配色",c:"SH"},
+    {t:"弹起来，今天还有三个目标要完成",c:"SZ"},
+    {t:"把闹钟关了，让云替我上班",c:"DL"}]},
+
+  {q:"早饭这件事，你的标准操作是——",o:[
+    {t:"先订个茶位，一盅两件慢慢来",c:"GZ"},
+    {t:"锅包肉能不能当早饭？能",c:"HRB"},
+    {t:"端着热干面边走边吃，三分钟解决",c:"WH"},
+    {t:"一碗面要讲究，汤清面白才算数",c:"SUZ"}]},
+
+  {q:"闹钟之后你还想在被窝里多待一会儿，理由通常是——",o:[
+    {t:"再睡五分钟，之后的事交给之后的那个我",c:"CD"},
+    {t:"昨晚的夜宵还没消化完，属于工伤",c:"CS"},
+    {t:"先躺着想一会儿，人生需要一点留白",c:"NJ"},
+    {t:"躺五分钟可以，但得先想好今天吃哪家面",c:"LZ"}]},
+
+  {q:"醒来第一眼打开手机，你在看——",o:[
+    {t:"今天吃什么？附近哪家值得去",c:"CQ"},
+    {t:"今天风大不大，适不适合出门",c:"QD"},
+    {t:"有没有新的纪录片或历史冷知识",c:"XA"},
+    {t:"家族群里谁又发了鱼丸和汤的照片",c:"FZ"}]},
+
+  {q:"服务员问「辣度要几档」，你——",o:[
+    {t:"最高档，不辣等于没吃",c:"CS"},
+    {t:"先来点碳水垫底，辣只是配角",c:"XA"},
+    {t:"辣不辣无所谓，得配点海货和凉的",c:"QD"},
+    {t:"清淡点，吃完还想喝口花茶",c:"KM"}]},
+
+  {q:"你最认可的一句「吃饭宣言」是——",o:[
+    {t:"得闲饮茶，事儿在茶里谈",c:"GZ"},
+    {t:"早饭是一天的开工仪式，必须站着吃",c:"WH"},
+    {t:"一套煎饼果子，两个鸡蛋，全套都要",c:"TJ"},
+    {t:"先来碗鸭血粉丝，再谈正事",c:"NJ"}]},
+
+  {q:"朋友说「今晚整点啥」，你提议——",o:[
+    {t:"微辣就行，我要的是那个氛围",c:"CD"},
+    {t:"先摆盘，拍三张再动筷子",c:"SH"},
+    {t:"份量给足，菜要实在，别整花活",c:"HRB"},
+    {t:"海鲜为主，清蒸最能打",c:"XM"}]},
+
+  {q:"深夜饿到睡不着，你的解决方案是——",o:[
+    {t:"楼下便利店随便整点，效率优先",c:"SZ"},
+    {t:"来碗牛肉面，汤要清、辣子要红",c:"LZ"},
+    {t:"点杯咖啡，顺便把灵感写下来",c:"HZ"},
+    {t:"叫个老字号，吃饭也得有排面",c:"BJ"}]},
+
+  {q:"周末下午两点，理想状态是——",o:[
+    {t:"公园长椅晒太阳，晒到自己变成一滩",c:"CD"},
+    {t:"湖边走走，顺便把下周的方案想了",c:"HZ"},
+    {t:"骑车环岛，让海风当背景音乐",c:"XM"},
+    {t:"城墙根下遛弯，顺手吃碗面",c:"XA"}]},
+
+  {q:"假期第一天，你打开的是——",o:[
+    {t:"约人开唠，先笑一场再说",c:"TJ"},
+    {t:"订个茶位，一盅两件坐到中午",c:"GZ"},
+    {t:"找个小园子，听一段曲",c:"SUZ"},
+    {t:"梧桐树下溜达，顺便买只鸭子",c:"NJ"}]},
+
+  {q:"周末的两种活法，你选——",o:[
+    {t:"出门逛立体地图，爬坡也要去那家店",c:"CQ"},
+    {t:"白天躺平，晚上夜宵见",c:"CS"},
+    {t:"原地看云，云动了我就动",c:"DL"},
+    {t:"泡个温泉，泡到手指发皱",c:"FZ"}]},
+
+  {q:"如果周末只能做一件事，你选——",o:[
+    {t:"去看个展、听个讲座，脑子得喂点东西",c:"BJ"},
+    {t:"把周末当项目推进，进度条不能停",c:"SZ"},
+    {t:"去花市转一圈，抱一束回来",c:"KM"},
+    {t:"河边走一圈，再来碗面",c:"LZ"}]},
+
+  {q:"陌生人跟你搭话，三句之内你会——",o:[
+    {t:"先抛个包袱，把人逗笑再说",c:"TJ"},
+    {t:"直接开聊，嗓门和热情一起上",c:"WH"},
+    {t:"直接约夜宵，快乐要在凌晨兑现",c:"CS"},
+    {t:"轻声慢语，先把气氛摆舒服",c:"SUZ"}]},
+
+  {q:"群里聊到「最近那个大新闻」，你的发言是——",o:[
+    {t:"从趋势聊到格局，一口气打三百字",c:"BJ"},
+    {t:"甩一张九宫格截图，信息得排好",c:"SH"},
+    {t:"发个「都可以，你们定」，心里很平静",c:"CD"},
+    {t:"直接一句大实话，外加三个表情",c:"HRB"}]},
+
+  {q:"朋友想约你出门，哪句话最有效——",o:[
+    {t:"去吃那家最辣的，排队也去",c:"CQ"},
+    {t:"走，去海边待着，什么都不干",c:"XM"},
+    {t:"花开了，再不看就谢了",c:"KM"},
+    {t:"有个局挺有意思，人也都对",c:"SZ"}]},
+
+  {q:"群里有人说「周末聚一下」，你回——",o:[
+    {t:"行程发我，我排一下时间",c:"HZ"},
+    {t:"你们去，我在家等你们回来",c:"DL"},
+    {t:"喝一杯，就这么定",c:"QD"},
+    {t:"来我家，我煮鱼丸",c:"FZ"}]},
+
+  {q:"你希望窗外是什么——",o:[
+    {t:"霓虹和干净的街，灯得亮得讲究",c:"SH"},
+    {t:"立体楼群和夜景，越魔幻越好",c:"CQ"},
+    {t:"白墙小院，安静一点",c:"SUZ"},
+    {t:"雪，和窗上结的冰花",c:"HRB"}]},
+
+  {q:"挑房子你最看重——",o:[
+    {t:"楼下有菜市场和老店，生活半径要短",c:"GZ"},
+    {t:"过江方便，去哪都快",c:"WH"},
+    {t:"城墙边、老城里的那种生活",c:"XA"},
+    {t:"离海近，风能吹到阳台",c:"QD"}]},
+
+  {q:"你的房间会长成什么样——",o:[
+    {t:"书墙加一张地图，随时能开讲",c:"BJ"},
+    {t:"灯得亮到凌晨，桌上永远有宵夜",c:"CS"},
+    {t:"满屋绿植，空气里有点水汽",c:"FZ"},
+    {t:"木质家具，配一点梧桐色调",c:"NJ"}]},
+
+  {q:"你对住的唯一硬要求是——",o:[
+    {t:"楼下有人聊天，住哪都行",c:"TJ"},
+    {t:"通勤时间必须最短",c:"SZ"},
+    {t:"一年四季有花就行",c:"KM"},
+    {t:"窗外能看见河或者山",c:"LZ"}]},
+
+  {q:"导航说「前方需要爬坡」，你——",o:[
+    {t:"爬，坡越高说明那家店越好吃",c:"CQ"},
+    {t:"骑车上去，正好当锻炼",c:"XM"},
+    {t:"冬天滑着走，夏天照走",c:"HRB"},
+    {t:"路两边有梧桐，走多久都不亏",c:"NJ"}]},
+
+  {q:"早晚高峰，你的应对是——",o:[
+    {t:"地铁上看新闻，顺便想两句大事",c:"BJ"},
+    {t:"踩着点走，反正茶位还在",c:"GZ"},
+    {t:"过江就坐轮渡，看水比看车舒服",c:"WH"},
+    {t:"沿着河走一段，风一吹就清醒",c:"LZ"}]},
+
+  {q:"长途出行，你最爱的方式是——",o:[
+    {t:"慢慢来，路上也是行程的一部分",c:"CD"},
+    {t:"买张夜车票，到站正好吃夜宵",c:"CS"},
+    {t:"靠窗坐，看风景顺便看历史",c:"XA"},
+    {t:"高铁上把方案改完，落地就能开会",c:"HZ"}]},
+
+  {q:"十分钟的路，你怎么走——",o:[
+    {t:"打车，车里还得干净",c:"SH"},
+    {t:"边走边跟司机唠两句，路程就短了",c:"TJ"},
+    {t:"慢走到目的地，路上还能看看云",c:"DL"},
+    {t:"走就走，十分钟的路何必坐车",c:"FZ"}]},
+
+  {q:"emo 的时候，你的自救方案是——",o:[
+    {t:"睡一觉，太阳出来就好了",c:"CD"},
+    {t:"出去看云，看着看着就想通了",c:"DL"},
+    {t:"吃顿大的，热量能治一半",c:"HRB"},
+    {t:"找个小园子坐坐，听点慢的",c:"SUZ"}]},
+
+  {q:"突然有了个离谱的脑洞，你会——",o:[
+    {t:"第一反应：这能不能做成个东西",c:"SZ"},
+    {t:"写下来，发出去，看看有没有同频的人",c:"HZ"},
+    {t:"去海边想一想，风会给出答案",c:"QD"},
+    {t:"拿它跟历史比一比，古人可能早想过",c:"XA"}]},
+
+  {q:"如果开一家店，你会开——",o:[
+    {t:"一个开到凌晨的夜宵摊",c:"CS"},
+    {t:"一个海边的小店，只卖几样",c:"XM"},
+    {t:"一家花店，季节当招牌",c:"KM"},
+    {t:"一个小馆，进门先笑一场",c:"TJ"}]},
+
+  {q:"情绪上头那十分钟，你通常——",o:[
+    {t:"先把今天过细致，情绪也要摆盘",c:"SH"},
+    {t:"去爬个坡出出汗，回来就好了",c:"CQ"},
+    {t:"约人喝茶，把事说开",c:"GZ"},
+    {t:"出门走一走，风一吹就通了",c:"LZ"}]},
+
+  {q:"凌晨两点，你更可能在——",o:[
+    {t:"楼下撸串，或者干脆躺着",c:"CD"},
+    {t:"喝夜茶、吃宵夜，正热闹",c:"GZ"},
+    {t:"在宵夜街上挑一家排队的",c:"WH"},
+    {t:"泡个温泉，再来碗鱼丸汤",c:"FZ"}]},
+
+  {q:"睡前的仪式感，你的是——",o:[
+    {t:"护肤，把明天的衣服摆好",c:"SH"},
+    {t:"看会儿纪录片，脑子里过一遍大事",c:"BJ"},
+    {t:"听一段曲，把一天放慢",c:"SUZ"},
+    {t:"关灯听海浪，什么都不想",c:"XM"}]},
+
+  {q:"深夜你会给谁发消息——",o:[
+    {t:"给朋友发个段子，睡不着就一起笑",c:"TJ"},
+    {t:"给自己发待办，明天要更狠一点",c:"SZ"},
+    {t:"拍张梧桐夜灯，发给懂的人",c:"NJ"},
+    {t:"拍一张花，什么都不说",c:"KM"}]},
+
+  {q:"睡前的最后十分钟，你在——",o:[
+    {t:"楼下串串还开着，去吃两串",c:"CQ"},
+    {t:"打开笔记本，灵感刚好来了",c:"HZ"},
+    {t:"关灯，听风，睡",c:"DL"},
+    {t:"开一瓶，配点海货",c:"QD"}]}
+];
+
+/* ===== 计分：出现次数归一 ===== */
+const SLOTS = {};
+QUESTIONS.forEach(q => q.o.forEach(o => { SLOTS[o.c] = (SLOTS[o.c] || 0) + 1; }));
+const CITY_MAP = {}; CITIES.forEach(c => CITY_MAP[c.id] = c);
+
+const state = { i: 0, picks: [] };
+const $ = id => document.getElementById(id);
+
+function show(v){
+  document.querySelectorAll('.view').forEach(s => s.classList.remove('on'));
+  $(v).classList.add('on');
+  document.querySelector('.sky').classList.toggle('dim', v !== 'v-land');
+  window.scrollTo(0,0);
+}
+
+function renderQ(){
+  const q = QUESTIONS[state.i];
+  $('cur').textContent = String(state.i + 1).padStart(2,'0');
+  $('qno').textContent = '第 ' + (state.i + 1) + ' 题';
+  $('qtext').textContent = q.q;
+  $('bar').style.width = ((state.i) / QUESTIONS.length * 100) + '%';
+  $('back').disabled = state.i === 0;
+  const box = $('opts'); box.innerHTML = '';
+  q.o.forEach((o, k) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = '<span class="ltr">' + 'ABCD'[k] + '</span><span></span>';
+    b.lastChild.textContent = o.t;
+    b.addEventListener('click', () => pick(k, b));
+    box.appendChild(b);
+  });
+}
+
+function pick(k, btn){
+  if (btn.classList.contains('sel')) return;
+  document.querySelectorAll('.opt').forEach(e => e.classList.remove('sel'));
+  btn.classList.add('sel');
+  state.picks[state.i] = QUESTIONS[state.i].o[k].c;
+  setTimeout(() => {
+    if (state.i < QUESTIONS.length - 1){ state.i++; renderQ(); }
+    else { $('bar').style.width = '100%'; setTimeout(result, 260); }
+  }, 220);
+}
+
+$('back').addEventListener('click', () => {
+  if (state.i > 0){ state.i--; renderQ(); $('bar').style.width = ((state.i)/QUESTIONS.length*100)+'%'; }
+});
+
+$('go').addEventListener('click', () => { state.i = 0; state.picks = []; renderQ(); show('v-quiz'); });
+$('again').addEventListener('click', () => { state.i = 0; state.picks = []; renderQ(); show('v-quiz'); });
+
+/* ===== 结果计算 ===== */
+function result(){
+  const score = {};
+  state.picks.forEach(c => { score[c] = (score[c] || 0) + 1; });
+  const list = CITIES.map(c => {
+    const s = score[c.id] || 0;
+    const slots = SLOTS[c.id] || 1;
+    return { c, s, rate: s / slots, first: state.picks.indexOf(c.id) };
+  }).sort((a, b) => (b.s - a.s) || (b.rate - a.rate) || (a.first - b.first));
+
+  const best = list[0];
+  const second = list[1];
+  const match = Math.max(62, Math.min(98, Math.round(58 + best.rate * 42)));
+
+  $('r-city').textContent = best.c.name;
+  $('r-title').textContent = best.c.title;
+  $('r-num').textContent = match;
+  $('r-chips').innerHTML = '';
+  best.c.chips.forEach(t => {
+    const e = document.createElement('span'); e.className = 'chip'; e.textContent = t;
+    $('r-chips').appendChild(e);
+  });
+  $('r-reasons').innerHTML = '';
+  best.c.reasons.forEach(t => {
+    const d = document.createElement('div'); d.className = 'reason';
+    d.innerHTML = '<span class="dot"></span><span></span>';
+    d.lastChild.textContent = t;
+    $('r-reasons').appendChild(d);
+  });
+  $('r-egg').textContent = best.c.egg;
+  $('r-quote').textContent = best.c.quote;
+  $('r-alt').textContent = second.c.name + ' · ' + second.c.title;
+  state.res = { city: best.c, second: second.c, match: match };
+  show('v-res');
+}
+
+/* ===== 分享文案 ===== */
+function shareText(){
+  const name = $('r-city').textContent, title = $('r-title').textContent, num = $('r-num').textContent;
+  return '我的本命城市是「' + name + '」，人设是' + title + '，同频度 ' + num + '%。\\n32 道离谱选择题，测出你适合定居在哪座城，你也来测一个？';
+}
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast._h); toast._h = setTimeout(() => t.classList.remove('on'), 2100);
+}
+$('copy').addEventListener('click', async () => {
+  const txt = shareText();
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast('已复制，去发个小红书吧');
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('已复制，去发个小红书吧'); }
+    catch(err){ toast('长按结果卡片截图也可以'); }
+    document.body.removeChild(ta);
+  }
+});
+
+/* ===== 结果卡：canvas 生成竖版图，保存到手机 ===== */
+const FONT = '"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif';
+let lastShotURL = '';
+
+function rr(c, x, y, w, h, r){
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function wrapLines(c, text, maxW){
+  const out = []; let cur = '';
+  for (const ch of text){
+    const t = cur + ch;
+    if (c.measureText(t).width > maxW && cur){ out.push(cur); cur = ch; }
+    else cur = t;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+function drawBody(c, res){
+  const x0 = 106, maxW = 868;
+  let y = 120;
+
+  c.font = '700 28px ' + FONT; c.fillStyle = '#C8203F';
+  c.fillText('你的本命城市是', x0, y); y += 44;
+
+  c.font = '900 120px ' + FONT;
+  c.fillStyle = '#2BD2C8'; c.fillText(res.city.name, x0 + 5, y + 7);
+  c.fillStyle = '#14102A'; c.fillText(res.city.name, x0, y);
+  y += 140;
+
+  // 人设贴纸
+  const t = res.city.title;
+  c.font = '700 34px ' + FONT;
+  const tw = c.measureText(t).width;
+  c.fillStyle = '#7B5CFF'; rr(c, x0, y, tw + 52, 68, 14); c.fill();
+  c.lineWidth = 4; c.strokeStyle = '#14102A'; rr(c, x0, y, tw + 52, 68, 14); c.stroke();
+  c.fillStyle = '#FBF3E4'; c.fillText(t, x0 + 26, y + 17);
+  y += 84;
+
+  // 关键词
+  c.font = '500 26px ' + FONT;
+  let cx = x0;
+  res.city.chips.forEach(k => {
+    const w = c.measureText(k).width + 40;
+    if (cx + w > x0 + maxW){ cx = x0; y += 52; }
+    rr(c, cx, y, w, 44, 22);
+    c.lineWidth = 2; c.strokeStyle = 'rgba(20,16,42,.32)'; c.stroke();
+    c.fillStyle = '#5A4E72'; c.fillText(k, cx + 20, y + 9);
+    cx += w + 12;
+  });
+  y += 62;
+
+  // 虚线
+  c.setLineDash([12, 10]); c.lineWidth = 3; c.strokeStyle = 'rgba(20,16,42,.22)';
+  c.beginPath(); c.moveTo(x0, y); c.lineTo(x0 + maxW, y); c.stroke(); c.setLineDash([]);
+  y += 26;
+
+  // 同频度
+  const nStr = String(res.match);
+  c.font = '900 100px ' + FONT; c.fillStyle = '#14102A';
+  c.fillText(nStr, x0, y + 6);
+  const nw = c.measureText(nStr).width;
+  c.font = '900 44px ' + FONT; c.fillText('%', x0 + nw + 6, y + 48);
+  c.font = '500 24px ' + FONT; c.fillStyle = '#5A4E72'; c.textAlign = 'right';
+  c.fillText('同频度', x0 + maxW, y + 24);
+  c.fillText('（按你的 32 次选择算出）', x0 + maxW, y + 60);
+  c.textAlign = 'left';
+  y += 138;
+
+  // 三件事
+  c.font = '900 26px ' + FONT; c.fillStyle = '#C8203F';
+  c.fillText('你们合拍的三件事', x0, y); y += 40;
+
+  let rf = '500 30px ' + FONT, lh = 46;
+  c.font = rf;
+  let ls = res.city.reasons.map(r => wrapLines(c, r, maxW - 34));
+  let total = ls.reduce((a, l) => a + l.length * lh, 0) + (ls.length - 1) * 18;
+  if (total > 260){
+    rf = '500 27px ' + FONT; lh = 41; c.font = rf;
+    ls = res.city.reasons.map(r => wrapLines(c, r, maxW - 34));
+  }
+  ls.forEach(l => {
+    c.fillStyle = '#FF4D6D'; c.fillRect(x0, y + 13, 12, 12);
+    c.fillStyle = '#241E3C'; c.font = rf;
+    l.forEach((s, k) => c.fillText(s, x0 + 34, y + k * lh));
+    y += l.length * lh + 18;
+  });
+  y += 6;
+
+  // 城市彩蛋
+  c.font = '700 24px ' + FONT;
+  const eggLines = wrapLines(c, res.city.egg, maxW - 56);
+  const eh = 40 + eggLines.length * 40 + 30;
+  c.fillStyle = '#0F1338'; rr(c, x0, y, maxW, eh, 22); c.fill();
+  c.lineWidth = 4; c.strokeStyle = '#14102A'; rr(c, x0, y, maxW, eh, 22); c.stroke();
+  c.fillStyle = '#2BD2C8'; c.fillText('城市彩蛋', x0 + 28, y + 20);
+  c.font = '500 28px ' + FONT; c.fillStyle = 'rgba(251,243,228,.95)';
+  eggLines.forEach((s, k) => c.fillText(s, x0 + 28, y + 60 + k * 40));
+  y += eh + 30;
+
+  // 金句
+  c.font = '900 40px ' + FONT;
+  const ql = wrapLines(c, res.city.quote, maxW - 30).slice(0, 2);
+  c.fillStyle = '#FFB627'; c.fillRect(x0, y + 8, 9, ql.length * 54 - 6);
+  c.fillStyle = '#14102A';
+  ql.forEach((s, k) => c.fillText(s, x0 + 28, y + 4 + k * 54));
+  y += ql.length * 54 + 30;
+
+  // 第二顺位
+  c.font = '500 24px ' + FONT; c.fillStyle = '#5A4E72';
+  c.fillText('第二顺位：' + res.second.name + ' · ' + res.second.title, x0, y);
+
+  return y + 26;
+}
+
+function buildShare(res){
+  const W = 1080, S = 2, cardTop = 64;
+
+  // 先量一次内容高度，再按内容决定卡片高度（短内容不留大片空白）
+  const pv = document.createElement('canvas');
+  pv.width = W * S; pv.height = 1700 * S;
+  const pc = pv.getContext('2d');
+  pc.scale(S, S); pc.textBaseline = 'top';
+  const yEnd = drawBody(pc, res);
+
+  const cardH = Math.max(1060, yEnd + 106 - cardTop);
+  const H = cardTop + cardH + 56;
+
+  const cv = document.createElement('canvas');
+  cv.width = W * S; cv.height = H * S;
+  const c = cv.getContext('2d');
+  c.scale(S, S); c.textBaseline = 'top';
+
+  // 深夜底
+  const bg = c.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#232760'); bg.addColorStop(.45, '#0F1338'); bg.addColorStop(1, '#080B24');
+  c.fillStyle = bg; c.fillRect(0, 0, W, H);
+
+  // 底部落日余晖
+  const glow = c.createRadialGradient(540, H + 40, 20, 540, H + 40, 760);
+  glow.addColorStop(0, 'rgba(255,77,109,.42)');
+  glow.addColorStop(.55, 'rgba(196,60,142,.18)');
+  glow.addColorStop(1, 'rgba(255,77,109,0)');
+  c.fillStyle = glow; c.fillRect(0, H - 680, W, 680);
+
+  // 印刷网点（只在卡片外露出的边缘可见）
+  c.fillStyle = 'rgba(251,243,228,.12)';
+  for (let dx = 10; dx < W; dx += 14){
+    for (let dy = 10; dy < H; dy += 14){
+      if (dx > 44 && dx < 1036 && dy > 54 && dy < cardTop + cardH + 10) continue;
+      c.beginPath(); c.arc(dx, dy, 1.4, 0, Math.PI * 2); c.fill();
+    }
+  }
+
+  // 卡片
+  c.fillStyle = '#FF4D6D'; rr(c, 68, 80, 972, cardH, 46); c.fill();
+  c.fillStyle = '#FBF3E4'; rr(c, 54, cardTop, 972, cardH, 46); c.fill();
+  c.lineWidth = 8; c.strokeStyle = '#14102A'; rr(c, 54, cardTop, 972, cardH, 46); c.stroke();
+
+  drawBody(c, res);
+
+  // 底部品牌（贴卡片底边）
+  c.font = '500 22px ' + FONT; c.fillStyle = 'rgba(20,16,42,.5)';
+  c.fillText('测一测，你适合定居的城市 · 趣味测试仅供娱乐', 106, cardTop + cardH - 48);
+
+  return cv;
+}
+
+function closeModal(){
+  $('modal').classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+$('save').addEventListener('click', async () => {
+  if (!state.res){ toast('先答完 32 题，才能保存结果卡'); return; }
+  toast('正在生成结果卡…');
+  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(e){}
+  try{
+    const cv = buildShare(state.res);
+    lastShotURL = cv.toDataURL('image/png');
+    $('shot').src = lastShotURL;
+    $('dl').setAttribute('data-name', '我的本命城市-' + state.res.city.name + '.png');
+    $('modal').classList.add('on');
+    document.body.style.overflow = 'hidden';
+  }catch(err){
+    toast('生成失败，长按结果卡片截图也可以');
+  }
+});
+
+$('dl').addEventListener('click', () => {
+  const url = lastShotURL || $('shot').src;
+  if (!url) return;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = $('dl').getAttribute('data-name') || '我的本命城市.png';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('已保存，去相册看看');
+});
+
+$('mclose').addEventListener('click', closeModal);
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* 桌面端键盘 A/B/C/D */
+document.addEventListener('keydown', e => {
+  if (!$('v-quiz').classList.contains('on')) return;
+  const k = 'abcd'.indexOf(e.key.toLowerCase());
+  if (k >= 0){
+    const b = document.querySelectorAll('.opt')[k];
+    if (b) b.click();
+  }
+});
+</script>
+</body>
+</html>
